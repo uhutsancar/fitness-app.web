@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import Pagination from "@mui/material/Pagination";
-
 import { Box, Stack, Typography } from "@mui/material";
 import { exerciseOptions, fetchData } from "../utils/fetchData";
 import ExerciseCard from "./ExerciseCard";
@@ -11,13 +10,16 @@ const Exercises = ({ exercises, setExercises, bodyPart }) => {
 
   const indexOfLastExercise = currentPage * exercisesPerPage;
   const indexOfFirstExercise = indexOfLastExercise - exercisesPerPage;
-  const currentExercises = exercises.slice(
-    indexOfFirstExercise,
-    indexOfLastExercise
-  );
+  
+  // Güvenli slice işlemi - exercises'in dizi olduğundan emin oluyoruz
+  const currentExercises = Array.isArray(exercises) 
+    ? exercises.slice(indexOfFirstExercise, indexOfLastExercise)
+    : [];
+
   useEffect(() => {
     const fetchExercisesData = async () => {
       let exercisesData = [];
+
       if (bodyPart === "all") {
         exercisesData = await fetchData(
           "https://exercisedb.p.rapidapi.com/exercises",
@@ -29,10 +31,12 @@ const Exercises = ({ exercises, setExercises, bodyPart }) => {
           exerciseOptions
         );
       }
+
       setExercises(exercisesData);
     };
+
     fetchExercisesData();
-  }, [bodyPart]);
+  }, [bodyPart, setExercises]);
 
   const paginate = (e, value) => {
     setCurrentPage(value);
@@ -54,8 +58,8 @@ const Exercises = ({ exercises, setExercises, bodyPart }) => {
           <ExerciseCard key={index} exercise={exercise} />
         ))}
       </Stack>
-      <Stack mt="100px" alignItems="center">
-        {exercises.length > 9 && (
+      {exercises.length > 9 && (
+        <Stack mt="100px" alignItems="center">
           <Pagination
             color="standard"
             shape="rounded"
@@ -65,8 +69,8 @@ const Exercises = ({ exercises, setExercises, bodyPart }) => {
             onChange={paginate}
             size="large"
           />
-        )}
-      </Stack>
+        </Stack>
+      )}
     </Box>
   );
 };
